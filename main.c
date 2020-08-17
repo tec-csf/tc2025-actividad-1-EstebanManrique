@@ -12,7 +12,6 @@ typedef struct
     char* telefono; 
 } Paciente;
 
-static Paciente* pacienteVacio;
 typedef struct
 {
     int numeroCama;
@@ -33,6 +32,7 @@ void liberarMemoriaPaciente(Paciente *pacienteALiberar) //Libera memoria dinamic
     free(pacienteALiberar->nombre);
     free(pacienteALiberar->Apellidos);
     free(pacienteALiberar->telefono);
+    free(pacienteALiberar);
     return;
 }
 
@@ -42,8 +42,6 @@ void creacionHospital() //Crea las camas predeterminadas del hospital con base e
     {
         (hospital + i)->estado = DESOCUPADA;
         (hospital + i)->numeroCama = i + 1;
-        Paciente* pt;
-        (hospital + i)->paciente = pt; //Paciente VACIO, solo se declara para que ninguna variable quede sin asignacion
         printf("Creacion de la cama %d.\n", (hospital + i)->numeroCama);
     }
     return;
@@ -64,29 +62,33 @@ void ampliacionHospital() //Amplia en 5 la capacidad del hospital en caso de que
     return;
 }
 
+void incorporarPacienteAux(Paciente* paciente)
+{
+    paciente->nombre = (char*)malloc(sizeof(char) * 30); //Uso de memoria dinamica para cadenas de caracteres
+    printf("Introducir el nombre del paciente.\n");
+    scanf(" %[^\n]", paciente->nombre);
+    paciente->Apellidos = (char*)malloc(sizeof(char)* 35); //Uso de memoria dinamica para cadenas de caracteres
+    printf("Introducir el apellido del paciente.\n");
+    scanf(" %[^\n]", paciente->Apellidos);
+    printf("Introducir la edad del paciente.\n");
+    scanf("%d", &(paciente->edad));
+    paciente->telefono = (char*)malloc(sizeof(char) * 10); //Uso de memoria dinamica para cadenas de caracteres
+    printf("Introducir el telefono del paciente.\n");
+    scanf("%s", paciente->telefono);
+
+    return;
+}
+
 void IncorporarPaciente() //Se piden los datos del paciente para ser dado de alta en el hospital
 {
-    Paciente* pacineteAIncorporar = (Paciente*)malloc(sizeof(Paciente));
-    pacineteAIncorporar->nombre = malloc(30); //Uso de memoria dinamica para cadenas de caracteres
-    printf("Introducir el nombre del paciente.\n");
-    scanf("%s", pacineteAIncorporar->nombre);
-    pacineteAIncorporar->Apellidos = malloc(35); //Uso de memoria dinamica para cadenas de caracteres
-    printf("Introducir el apellido del paciente.\n");
-    scanf("%s", pacineteAIncorporar->Apellidos);
-    printf("Introducir la edad del paciente.\n");
-    scanf("%d", &(pacineteAIncorporar->edad));
-    pacineteAIncorporar->telefono = malloc(10); //Uso de memoria dinamica para cadenas de caracteres
-    printf("Introducir el telefono del paciente.\n");
-    scanf("%s", pacineteAIncorporar->telefono);
-    
-    
     for(int i = 0; i<numeroCamasInicial; i++) //Ciclo que busca la primera cama Desocupada para dar de alta al paciente
     {
         if((hospital + i)->estado == DESOCUPADA)
         {
-            (hospital + i)->paciente = pacineteAIncorporar;
+            (hospital + i)->paciente = (Paciente*)malloc(sizeof(Paciente));
+            incorporarPacienteAux((hospital + i)->paciente); 
             (hospital + i)->estado = OCUPADA;
-            printf("El paciente %s %s se encuentra en la cama %d.\n\n", pacineteAIncorporar->nombre, pacineteAIncorporar->Apellidos,(hospital + i)->numeroCama);
+            printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + i)->paciente->nombre, (hospital + i)->paciente->Apellidos,(hospital + i)->numeroCama);
             return;
         }
     }
@@ -94,11 +96,12 @@ void IncorporarPaciente() //Se piden los datos del paciente para ser dado de alt
     int camaAInsertar = numeroCamasInicial; //Se guarda este valor en caso de que No haya habido cama disponible; se usara una vez se aumente numero de camas.
     
     ampliacionHospital(); //Se aumenta en 5 el numero de camas.
-    (hospital + camaAInsertar)->paciente = pacineteAIncorporar;
+    (hospital + camaAInsertar)->paciente = (Paciente*)malloc(sizeof(Paciente));
+    incorporarPacienteAux((hospital + camaAInsertar)->paciente); 
     (hospital + camaAInsertar)->estado = OCUPADA;
-    printf("El paciente %s %s se encuentra en la cama %d.\n\n", pacineteAIncorporar->nombre, pacineteAIncorporar->Apellidos, (hospital + camaAInsertar)->numeroCama);
+    printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + camaAInsertar)->paciente->nombre, (hospital + camaAInsertar)->paciente->Apellidos, (hospital + camaAInsertar)->numeroCama);
     return;
-}
+} 
 
 void checarCamaPaciente(int numeroCama) //Checa que paciente hay en una cama determinada. Arroja que cama está Disponible si NO HAY PACIENTE e indica que Hospital no tiene cama si es el caso
 {
@@ -144,8 +147,6 @@ void darDeAlta(int numeroCama) //Se da de alta a un paciente de acuerdo a su num
         (hospital + (numeroCama - 1))->estado = DESOCUPADA;
         printf("La cama numero %d fue liberada y el paciente %s %s dado de alta.\n\n", numeroCama, (hospital + (numeroCama - 1))->paciente->nombre, (hospital + (numeroCama - 1))->paciente->Apellidos);
         liberarMemoriaPaciente((hospital + (numeroCama - 1))->paciente); //Se libera la memoria dinamica del usuario cuando se da de alta para evitar fugas de memoria
-        pacienteVacio = (Paciente*)malloc(sizeof(Paciente));
-        (hospital + (numeroCama - 1))->paciente = pacienteVacio;
         return;
     }
 }
