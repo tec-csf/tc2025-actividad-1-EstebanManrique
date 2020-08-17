@@ -7,25 +7,25 @@ size_t numeroCamasInicial = 2; //Numero de camas con las que se inicia el hospit
 typedef struct
 {
     char* nombre;
-    char* Apellidos; 
+    char* Apellidos;
+    char* telefono;  
     int edad;
-    char* telefono; 
 } Paciente;
 
 typedef struct
 {
+    Paciente* paciente;
     int numeroCama;
     int estado; //Ocupada o Desocupada
-    Paciente* paciente;
 } CamaHospital;
-
-CamaHospital* hospital;
 
 enum EstadoCamaHospital
 {
     OCUPADA, //OCUPADA = 0; DESOCUPADA = 1;
     DESOCUPADA
 };
+
+CamaHospital* hospital;
 
 void liberarMemoriaPaciente(Paciente *pacienteALiberar) //Libera memoria dinamica de pacientes dados de alta o al terminar el programa
 {
@@ -52,7 +52,7 @@ void ampliacionHospital() //Amplia en 5 la capacidad del hospital en caso de que
     printf("Se requiere una expansion de 5 camas en el hospital.\n");
     int camasActuales = numeroCamasInicial; //Se guarda el numero de camas actuales para continuar con la creacion de las mismas
     numeroCamasInicial = numeroCamasInicial + 5;
-    hospital = realloc(hospital, numeroCamasInicial * sizeof(CamaHospital)); //Realocacion de memoria dinamica con numero de camas ACTUALIZADO
+    hospital = (CamaHospital*)realloc(hospital, numeroCamasInicial * sizeof(CamaHospital)); //Realocacion de memoria dinamica con numero de camas ACTUALIZADO
     for(camasActuales; camasActuales<numeroCamasInicial; camasActuales++)
     {
         (hospital + camasActuales)->estado = DESOCUPADA;
@@ -75,7 +75,6 @@ void incorporarPacienteAux(Paciente* paciente)
     paciente->telefono = (char*)malloc(sizeof(char) * 10); //Uso de memoria dinamica para cadenas de caracteres
     printf("Introducir el telefono del paciente.\n");
     scanf("%s", paciente->telefono);
-
     return;
 }
 
@@ -92,7 +91,6 @@ void IncorporarPaciente() //Se piden los datos del paciente para ser dado de alt
             return;
         }
     }
-    
     int camaAInsertar = numeroCamasInicial; //Se guarda este valor en caso de que No haya habido cama disponible; se usara una vez se aumente numero de camas.
     
     ampliacionHospital(); //Se aumenta en 5 el numero de camas.
@@ -103,8 +101,11 @@ void IncorporarPaciente() //Se piden los datos del paciente para ser dado de alt
     return;
 } 
 
-void checarCamaPaciente(int numeroCama) //Checa que paciente hay en una cama determinada. Arroja que cama está Disponible si NO HAY PACIENTE e indica que Hospital no tiene cama si es el caso
+void checarCamaPaciente() //Checa que paciente hay en una cama determinada. Arroja que cama está Disponible si NO HAY PACIENTE e indica que Hospital no tiene cama si es el caso
 {
+    int numeroCama;
+    printf("De que cama se quiere conocer al paciente?\n");
+    scanf("%d", &numeroCama);
     if(numeroCama>numeroCamasInicial) //Numero de cama no fue encontrado en el hospital
     {
         printf("El hospital no cuneta con ese numero de cama.\n\n"); 
@@ -119,8 +120,8 @@ void checarCamaPaciente(int numeroCama) //Checa que paciente hay en una cama det
         }
         else if((hospital + i)->numeroCama == numeroCama && (hospital + i)->estado == OCUPADA) //Cama introducida por usuario esta OCUPADA
         {
-             printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + i)->paciente->nombre, (hospital + i)->paciente->Apellidos, numeroCama);
-             return;
+            printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + i)->paciente->nombre, (hospital + i)->paciente->Apellidos, numeroCama);
+            return;
         }
         else
         {
@@ -130,8 +131,11 @@ void checarCamaPaciente(int numeroCama) //Checa que paciente hay en una cama det
     return;
 }
 
-void darDeAlta(int numeroCama) //Se da de alta a un paciente de acuerdo a su numero de cama
+void darDeAlta() //Se da de alta a un paciente de acuerdo a su numero de cama
 {
+    int numeroCama;
+    printf("De que cama se quiere conocer al paciente?\n");
+    scanf("%d", &numeroCama);
     if((hospital + (numeroCama - 1))->estado == DESOCUPADA) //Si la el numero de cama introducido esta vacio, se le notifica el usaurio
     {
         printf("La cama se encuentra sin paciente, por lo que NO se puede cumplir su peticion.\n\n");
@@ -183,10 +187,20 @@ void camasDisponiblesYOcupadas() //Se hace un recuento y se imprime el numero de
     return;
 }
 
+typedef void (*opcion_t)();
+
 void menuAplicacion() //Menu principal de la Aplicacion
 {
     creacionHospital();
     printf("Creacion de las camas predeterminadas del hospital completada.\n\n");
+    
+    opcion_t * menu = (opcion_t *) malloc(5 * sizeof(opcion_t));
+    *menu = IncorporarPaciente;
+    *(menu+1) = checarCamaPaciente;
+    *(menu+2) = darDeAlta;
+    *(menu+3) = listadoPacientes;
+    *(menu+4) = camasDisponiblesYOcupadas;
+
     int opcion = 0;
     while(opcion != 6)
     {
@@ -198,41 +212,15 @@ void menuAplicacion() //Menu principal de la Aplicacion
         printf("6.- Salir de la aplicacion.\n\n");
         printf("Favor de escoger la opcion que quiere ejecutar.\n");
         scanf("%d", &opcion);
-        
-        switch(opcion)
+        if(opcion!=6)
         {
-            int cama;
-            case 1:
-                IncorporarPaciente();
-                break;
-                
-            case 2:
-                printf("De que cama se quiere conocer al paciente?\n");
-                scanf("%d", &cama);
-                checarCamaPaciente(cama);
-                break;
-            
-            case 3:
-                printf("De que cama se quiere dar de alta al paciente?\n");
-                scanf("%d", &cama);
-                darDeAlta(cama);
-                break;
-                
-            case 4:
-                listadoPacientes();
-                break;
-                
-            case 5:
-                camasDisponiblesYOcupadas();
-                break;
-
-            case 6:
-                break;
-
-            default:
-                printf("Entrada invalida, Intentar nuevamente.\n");
-                break;
+            (*(menu+opcion-1))(opcion);
         }
+        else
+        {
+            break;
+        }
+  
     }
     for(int i = 0; i<numeroCamasInicial; i++)
     {
@@ -242,12 +230,13 @@ void menuAplicacion() //Menu principal de la Aplicacion
         }
     }
     printf("Se ha decidido salir de la aplicacion.\n");
+    free(menu);
     return;
 }
 
 int main()
 {
-    hospital = calloc(numeroCamasInicial, sizeof(CamaHospital)); //Alocacion de memoria dinamica inicial para las camas predeterminadas del hospital
+    hospital = (CamaHospital*)malloc(numeroCamasInicial * sizeof(CamaHospital)); //Alocacion de memoria dinamica inicial para las camas predeterminadas del hospital
     menuAplicacion(); //Menu de la aplicacion
     free(hospital); //Se libera la memoria usada para guardar todas las camas del hospital.
     return 0;
