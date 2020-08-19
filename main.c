@@ -8,7 +8,7 @@ typedef struct
 {
     char* nombre;
     char* Apellidos;
-    char* telefono;  
+    char* telefono;
     int edad;
 } Paciente;
 
@@ -85,21 +85,21 @@ void IncorporarPaciente() //Se piden los datos del paciente para ser dado de alt
         if((hospital + i)->estado == DESOCUPADA)
         {
             (hospital + i)->paciente = (Paciente*)malloc(sizeof(Paciente));
-            incorporarPacienteAux((hospital + i)->paciente); 
+            incorporarPacienteAux((hospital + i)->paciente);
             (hospital + i)->estado = OCUPADA;
             printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + i)->paciente->nombre, (hospital + i)->paciente->Apellidos,(hospital + i)->numeroCama);
             return;
         }
     }
     int camaAInsertar = numeroCamasInicial; //Se guarda este valor en caso de que No haya habido cama disponible; se usara una vez se aumente numero de camas.
-    
+
     ampliacionHospital(); //Se aumenta en 5 el numero de camas.
     (hospital + camaAInsertar)->paciente = (Paciente*)malloc(sizeof(Paciente));
-    incorporarPacienteAux((hospital + camaAInsertar)->paciente); 
+    incorporarPacienteAux((hospital + camaAInsertar)->paciente);
     (hospital + camaAInsertar)->estado = OCUPADA;
     printf("El paciente %s %s se encuentra en la cama %d.\n\n", (hospital + camaAInsertar)->paciente->nombre, (hospital + camaAInsertar)->paciente->Apellidos, (hospital + camaAInsertar)->numeroCama);
     return;
-} 
+}
 
 void checarCamaPaciente() //Checa que paciente hay en una cama determinada. Arroja que cama está Disponible si NO HAY PACIENTE e indica que Hospital no tiene cama si es el caso
 {
@@ -108,7 +108,7 @@ void checarCamaPaciente() //Checa que paciente hay en una cama determinada. Arro
     scanf("%d", &numeroCama);
     if(numeroCama>numeroCamasInicial) //Numero de cama no fue encontrado en el hospital
     {
-        printf("El hospital no cuneta con ese numero de cama.\n\n"); 
+        printf("El hospital no cuneta con ese numero de cama.\n\n");
         return;
     }
     for(int i = 0; i<numeroCamasInicial; i++)
@@ -193,7 +193,7 @@ void menuAplicacion() //Menu principal de la Aplicacion
 {
     creacionHospital();
     printf("Creacion de las camas predeterminadas del hospital completada.\n\n");
-    
+
     opcion_t * menu = (opcion_t *) malloc(5 * sizeof(opcion_t));
     *menu = IncorporarPaciente;
     *(menu+1) = checarCamaPaciente;
@@ -212,15 +212,20 @@ void menuAplicacion() //Menu principal de la Aplicacion
         printf("6.- Salir de la aplicacion.\n\n");
         printf("Favor de escoger la opcion que quiere ejecutar.\n");
         scanf("%d", &opcion);
-        if(opcion!=6)
+        if(opcion!=6 && opcion>=0 && opcion<=5)
         {
             (*(menu+opcion-1))(opcion);
+        }
+        else if(opcion!=6)
+        {
+            printf("La opcion introducida no es valida. \n\n");
+            continue;
         }
         else
         {
             break;
         }
-  
+
     }
     for(int i = 0; i<numeroCamasInicial; i++)
     {
